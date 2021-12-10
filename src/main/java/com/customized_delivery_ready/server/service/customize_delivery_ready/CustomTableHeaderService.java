@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.customized_delivery_ready.server.model.custom_table_header.dto.CustomTableHeaderGetDto;
 import com.customized_delivery_ready.server.model.custom_table_header.entity.CustomTableHeaderEntity;
@@ -34,8 +35,21 @@ public class CustomTableHeaderService {
         }
     }
 
-    // title 전체 조회용도
     public List<CustomTableHeaderEntity> searchList() {
         return customTableHeaderRepository.findAll();
+    }
+
+    public void updateList(List<CustomTableHeaderGetDto> dtos) {
+        List<CustomTableHeaderEntity> entities = dtos.stream().map(dto -> CustomTableHeaderEntity.toEntity(dto)).collect(Collectors.toList());
+        
+        for(CustomTableHeaderEntity entity : entities) {
+            customTableHeaderRepository.findById(entity.getId()).ifPresent(item -> {
+                item.setTitle(entity.getTitle())
+                    .setCustomColName(entity.getCustomColName())
+                    .setRefFormId(entity.getRefFormId());
+
+                customTableHeaderRepository.save(item);
+            });
+        }
     }
 }

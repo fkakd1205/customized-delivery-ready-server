@@ -2,6 +2,8 @@ package com.customized_delivery_ready.server.model.custom_table_header.dto;
 
 import java.util.UUID;
 
+import com.customized_delivery_ready.server.model.custom_table_header.entity.CustomTableHeaderEntity;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,4 +21,15 @@ public class CustomTableHeaderGetDto {
     private String title;
     private String customColName;
     private UUID refFormId;
+
+    public static CustomTableHeaderGetDto toDto(CustomTableHeaderEntity entity) {
+        CustomTableHeaderGetDto dto = CustomTableHeaderGetDto.builder()
+            .id(entity.getId())
+            .title(entity.getTitle())
+            .customColName(entity.getCustomColName())
+            .refFormId(entity.getRefFormId())
+            .build();
+
+        return dto;
+    }
 }

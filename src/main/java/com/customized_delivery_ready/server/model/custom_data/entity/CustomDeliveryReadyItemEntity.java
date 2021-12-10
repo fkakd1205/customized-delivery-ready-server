@@ -29,11 +29,11 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 public class CustomDeliveryReadyItemEntity {
     
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cid")
     private Integer cid;
 
-    @Id
     @Type(type = "uuid-char")
     @Column(name = "id")
     private UUID id;

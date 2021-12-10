@@ -2,6 +2,8 @@ package com.customized_delivery_ready.server.model.ref_form.dto;
 
 import java.util.UUID;
 
+import com.customized_delivery_ready.server.model.ref_form.entity.RefFormEntity;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,4 +20,14 @@ public class RefFormGetDto {
     private UUID id;
     private String originColName;
     private String cellNumber;
+
+    public static RefFormGetDto toDto(RefFormEntity entity) {
+        RefFormGetDto dto = RefFormGetDto.builder()
+            .id(entity.getId())
+            .originColName(entity.getOriginColName())
+            .cellNumber(entity.getCellNumber())
+            .build();
+
+        return dto;
+    }
 }

@@ -4,12 +4,19 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.customized_delivery_ready.server.model.custom_data.dto.CustomDeliveryReadyItemGetDto;
+import com.customized_delivery_ready.server.model.custom_data.dto.CustomizedDeliveryReadyItemResDto;
 import com.customized_delivery_ready.server.model.custom_data.entity.CustomDeliveryReadyItemEntity;
 import com.customized_delivery_ready.server.model.custom_data.repository.CustomDeliveryReadyRepository;
+import com.customized_delivery_ready.server.model.custom_table_header.dto.CustomTableHeaderGetDto;
+import com.customized_delivery_ready.server.model.custom_table_header.entity.CustomTableHeaderEntity;
+import com.customized_delivery_ready.server.model.custom_table_header.repository.CustomTableHeaderRepository;
+import com.customized_delivery_ready.server.model.ref_form.dto.RefFormGetDto;
+import com.customized_delivery_ready.server.model.ref_form.entity.RefFormEntity;
 
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
@@ -30,6 +37,12 @@ public class CustomDeliveryReadyDataService {
 
     @Autowired
     private CustomDeliveryReadyRepository customDeliveryReadyRepository;
+
+    @Autowired
+    private CustomTableHeaderService customTableHeaderService;
+
+    @Autowired
+    private RefFormService refFormService;
    
     public List<CustomDeliveryReadyItemGetDto> uploadDeliveryReadyExcelFile(MultipartFile file) {
         Workbook workbook = null;
@@ -55,6 +68,8 @@ public class CustomDeliveryReadyDataService {
      */
     private List<CustomDeliveryReadyItemGetDto> getDeliveryReadyExcelForm(Sheet worksheet) {
         List<CustomDeliveryReadyItemGetDto> dtos = new ArrayList<>();
+        List<RefFormEntity> refEntities = refFormService.searchList();
+        List<RefFormGetDto> refDtos = refEntities.stream().map(r -> RefFormGetDto.toDto(r)).collect(Collectors.toList());
 
         for (int i = 2; i < worksheet.getPhysicalNumberOfRows(); i++) {
             Row row = worksheet.getRow(i);
@@ -78,6 +93,8 @@ public class CustomDeliveryReadyDataService {
                         customDataJson.put("origin_col_data", row.getCell(j) != null ? row.getCell(j).getNumericCellValue() : "");
                     }
                 }
+                customDataJson.put("ref_form_id", refDtos.get(j).getId());
+
                 customDataJsonArr.add(customDataJson);
             }
             customDetailJson.put("details", customDataJsonArr);
@@ -103,5 +120,74 @@ public class CustomDeliveryReadyDataService {
         List<CustomDeliveryReadyItemEntity> entities = dtos.stream().map(dto -> CustomDeliveryReadyItemEntity.toEntity(dto)).collect(Collectors.toList());
         customDeliveryReadyRepository.createItem(entities);
         return dtos;
+    }
+
+    public List<CustomizedDeliveryReadyItemResDto> changeToCustomizedDeliveryReadyExcelFile(List<CustomDeliveryReadyItemGetDto> dtos) {
+        List<CustomizedDeliveryReadyItemResDto> changedDtos = new ArrayList<>();
+        List<CustomTableHeaderEntity> headerEntities = customTableHeaderService.searchList();
+        List<CustomTableHeaderGetDto> headerDtos = headerEntities.stream().map(r -> CustomTableHeaderGetDto.toDto(r)).collect(Collectors.toList());
+        List<UUID> customUUIDs = headerDtos.stream().map(r -> r.getRefFormId()).collect(Collectors.toList());
+
+        for(CustomDeliveryReadyItemGetDto dto : dtos) {
+            JSONArray details = this.objectToJsonArray(dto.getDeliveryReadyCustomItem().get("details"));
+            JSONArray customizedArr = new JSONArray();
+
+            // header를 돌면서 ref_form_id가 존재하지 않으면 jsonObject에 null값 추가.
+            // ref_form_id 가 존재하면 details : [{}, {}, {}, ... {}] 67개 돌면서
+            // ref_form_id 와 {}의 ref_form_id가 동일하지 않으면 다음 {}검사, 동일하면 origin_col_data jsonObject추가하고 break.
+            for (CustomTableHeaderGetDto headerDto : headerDtos) {
+                JSONObject customizedJson = new JSONObject();
+                if (headerDto.getRefFormId() != null) {
+                    for(int i = 0; i < NAVER_DELIVERY_READY_COL_SIZE; i++) {
+                        JSONObject detail = this.objectToJsonObject(details.get(i));
+                        String originColData = detail.get("origin_col_data") != null ? detail.get("origin_col_data").toString() : null;
+                        UUID refFormId = detail.get("ref_form_id") != null ? UUID.fromString(detail.get("ref_form_id").toString()) : null;
+
+                        if(headerDto.getRefFormId().equals(refFormId)) {
+                            customizedJson.put("id", UUID.randomUUID());
+                            customizedJson.put("custom_col_data", originColData);
+                            customizedJson.put("ref_form_id", refFormId);
+                            customizedArr.add(customizedJson);
+                            break;
+                        }
+                    }
+                } else {
+                    customizedJson.put("id", UUID.randomUUID());
+                    customizedJson.put("custom_col_data", null);
+                    customizedJson.put("ref_form_id", null);
+                    customizedArr.add(customizedJson);
+                }
+            }
+                
+            CustomizedDeliveryReadyItemResDto resDto = CustomizedDeliveryReadyItemResDto.builder()
+                .id(UUID.randomUUID())
+                .customizedDeliveryReadyItem(customizedArr)
+                .build();
+
+            changedDtos.add(resDto);
+        }
+
+        return changedDtos;
+    }
+
+    public JSONArray objectToJsonArray(Object object){
+        JSONArray jsonArray = new JSONArray();
+        if (object instanceof Map){
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.putAll((Map)object);
+            jsonArray.add(jsonObject);
+        }
+        else if (object instanceof List){
+            jsonArray.addAll((List)object);
+        }
+        return jsonArray;
+    }
+
+    public JSONObject objectToJsonObject(Object object){
+        JSONObject jsonObject = new JSONObject();
+        if (object instanceof Map){
+            jsonObject.putAll((Map)object);
+        }
+        return jsonObject;
     }
 }

@@ -43,6 +43,7 @@ public class CustomTableHeaderEntity {
     @Column(name = "custom_col_name")
     private String customColName;
 
+    @Type(type = "uuid-char")
     @Column(name = "ref_form_id")
     private UUID refFormId;
 

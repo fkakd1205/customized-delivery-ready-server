@@ -1,5 +1,6 @@
 package com.customized_delivery_ready.server.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import com.customized_delivery_ready.server.model.custom_table_header.dto.CustomTableHeaderGetDto;
@@ -55,4 +56,17 @@ public class DeliveryReadyCustomHeaderApiController {
 
         return new ResponseEntity<>(message, message.getStatus());
     }
+
+    @PostMapping("/update/list")
+    public ResponseEntity<?> updateCustomTableHeader(@RequestBody List<CustomTableHeaderGetDto> dtos) {
+        Message message = new Message();
+
+        customTableHeaderService.updateList(dtos);
+        message.setStatus(HttpStatus.OK);
+        message.setMessage("success");
+
+        return new ResponseEntity<>(message, message.getStatus());
+    }
+
+    // TODO :: 위 동작을 실행하기 전의 create 문 만들기
 }

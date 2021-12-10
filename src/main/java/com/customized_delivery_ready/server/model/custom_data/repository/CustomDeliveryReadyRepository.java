@@ -13,7 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class CustomDeliveryReadyRepository{
+public class CustomDeliveryReadyRepository {
     
     // @Query(
     //     value = "INSERT INTO custom_delivery_ready_item(id)\n"
@@ -28,7 +28,7 @@ public class CustomDeliveryReadyRepository{
     public void createItem(List<CustomDeliveryReadyItemEntity> entities){
         for(CustomDeliveryReadyItemEntity entity : entities){
             entityManager.createNativeQuery("INSERT INTO custom_delivery_ready_item (id, delivery_ready_custom_item, order_number, prod_order_number, prod_name, option_info, receiver, destination)\n"
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
             .setParameter(1, entity.getId().toString())
             .setParameter(2, entity.getDeliveryReadyCustomItem().toJSONString())
             .setParameter(3, entity.getOrderNumber())
