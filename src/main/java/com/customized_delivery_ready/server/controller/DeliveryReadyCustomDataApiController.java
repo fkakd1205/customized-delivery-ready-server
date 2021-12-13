@@ -21,6 +21,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,14 +30,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/v1/delivery-ready/customize")
+@RequestMapping("/api/v1/delivery-ready/customize/naver")
 public class DeliveryReadyCustomDataApiController {
     
     @Autowired
     private CustomDeliveryReadyDataService customDeliveryReadyDataService;
-
-    @Autowired
-    private RefFormService refFormService;
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadDeliveryReadyExcelFile(@RequestParam("file") MultipartFile file) {
@@ -49,17 +47,6 @@ public class DeliveryReadyCustomDataApiController {
         return new ResponseEntity<>(message, message.getStatus());
     }
 
-    // @PostMapping("/store")
-    // public ResponseEntity<?> storeDeliveryReadyExcelFile(@RequestParam("file") MultipartFile file) {
-    //     Message message = new Message();
-
-    //     message.setData(customDeliveryReadyDataService.storeDeliveryReadyExcelFile(file));
-    //     message.setStatus(HttpStatus.OK);
-    //     message.setMessage("success");
-
-    //     return new ResponseEntity<>(message, message.getStatus());
-    // }
-
     @PostMapping("/store")
     public ResponseEntity<?> storeDeliveryReadyExcelFile(@RequestBody List<CustomDeliveryReadyItemGetDto> dtos) {
         Message message = new Message();
@@ -71,7 +58,7 @@ public class DeliveryReadyCustomDataApiController {
         return new ResponseEntity<>(message, message.getStatus());
     }
 
-    @PostMapping("/view")
+    @PostMapping("/customized")
     public ResponseEntity<?> changeToCustomizeDeliveryReadyExcelFile(@RequestBody List<CustomDeliveryReadyItemGetDto> dtos) {
         Message message = new Message();
 
@@ -82,5 +69,14 @@ public class DeliveryReadyCustomDataApiController {
         return new ResponseEntity<>(message, message.getStatus());
     }
 
+    @GetMapping("/searchList")
+    public ResponseEntity<?> searchAllCustomDeliveryReadyItem() {
+        Message message = new Message();
 
+        message.setData(customDeliveryReadyDataService.searchAllCustomDeliveryReadyItem());
+        message.setStatus(HttpStatus.OK);
+        message.setMessage("success");
+
+        return new ResponseEntity<>(message, message.getStatus());
+    }
 }

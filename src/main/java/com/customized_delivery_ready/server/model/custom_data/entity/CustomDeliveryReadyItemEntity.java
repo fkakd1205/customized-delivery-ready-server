@@ -3,6 +3,7 @@ package com.customized_delivery_ready.server.model.custom_data.entity;
 import java.util.UUID;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -10,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 import com.customized_delivery_ready.server.model.custom_data.dto.CustomDeliveryReadyItemGetDto;
+import com.customized_delivery_ready.server.model.custom_data.dto.DeliveryReadyCustomItemConverterDto;
 
 import org.hibernate.annotations.Type;
 import org.json.simple.JSONObject;
@@ -38,6 +40,7 @@ public class CustomDeliveryReadyItemEntity {
     @Column(name = "id")
     private UUID id;
 
+    // @Convert(converter = DeliveryReadyCustomItemConverterDto.class)
     @Column(name = "delivery_ready_custom_item")
     private JSONObject deliveryReadyCustomItem;
 

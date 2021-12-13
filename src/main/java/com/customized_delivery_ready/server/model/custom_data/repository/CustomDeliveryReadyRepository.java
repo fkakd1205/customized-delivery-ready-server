@@ -8,18 +8,10 @@ import javax.transaction.Transactional;
 
 import com.customized_delivery_ready.server.model.custom_data.entity.CustomDeliveryReadyItemEntity;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public class CustomDeliveryReadyRepository {
-    
-    // @Query(
-    //     value = "INSERT INTO custom_delivery_ready_item(id)\n"
-    //         + "VALUES(:entity.id)"
-    // , nativeQuery = true)
-    // int createItem(CustomDeliveryReadyItemEntity entity);
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -39,5 +31,10 @@ public class CustomDeliveryReadyRepository {
             .setParameter(8, entity.getDestination())
             .executeUpdate();
         }
+    }
+
+    public List<String> searchListDeliveryReadyCustomItem() {
+        List<String> list = entityManager.createNativeQuery("SELECT delivery_ready_custom_item FROM custom_delivery_ready_item").getResultList();
+        return list;
     }
 }
