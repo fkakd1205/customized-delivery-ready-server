@@ -1,5 +1,6 @@
 package com.customized_delivery_ready.server.service.customize_delivery_ready;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -19,9 +20,14 @@ public class CustomTableHeaderService {
     @Autowired
     private CustomTableHeaderRepository customTableHeaderRepository;
 
-    public CustomTableHeaderEntity createOne(CustomTableHeaderGetDto dto) {
-        CustomTableHeaderEntity entity = CustomTableHeaderEntity.toEntity(dto);
-        return customTableHeaderRepository.save(entity);
+    public List<CustomTableHeaderEntity> createList(List<CustomTableHeaderGetDto> dtos) {
+        List<CustomTableHeaderEntity> entities = new ArrayList<>();
+
+        for(CustomTableHeaderGetDto dto : dtos) {
+            CustomTableHeaderEntity entity = CustomTableHeaderEntity.toEntity(dto);
+            entities.add(entity);
+        }
+        return customTableHeaderRepository.saveAll(entities);
     }
 
     public CustomTableHeaderEntity searchOne(Map<String, Object> query) {

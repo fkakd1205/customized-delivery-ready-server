@@ -24,11 +24,11 @@ public class DeliveryReadyCustomHeaderApiController {
     @Autowired
     private CustomTableHeaderService customTableHeaderService;
 
-    @PostMapping("/one")
-    public ResponseEntity<?> createCustomTableHeader(@RequestBody CustomTableHeaderGetDto dto) {
+    @PostMapping("/list")
+    public ResponseEntity<?> createCustomTableHeader(@RequestBody List<CustomTableHeaderGetDto> dtos) {
         Message message = new Message();
 
-        message.setData(customTableHeaderService.createOne(dto));
+        message.setData(customTableHeaderService.createList(dtos));
         message.setStatus(HttpStatus.OK);
         message.setMessage("success");
 
