@@ -60,6 +60,10 @@ public class CustomDeliveryReadyItemEntity {
     @Column(name = "destination")
     private String destination;
 
+    @Type(type = "uuid-char")
+    @Column(name = "custom_table_header_title_id")
+    private UUID customTableHeaderTitleId;
+
     public static CustomDeliveryReadyItemEntity toEntity(CustomDeliveryReadyItemGetDto dto) {
         CustomDeliveryReadyItemEntity entity = CustomDeliveryReadyItemEntity.builder()
             .id(dto.getId())
@@ -70,6 +74,7 @@ public class CustomDeliveryReadyItemEntity {
             .optionInfo(dto.getOptionInfo())
             .receiver(dto.getReceiver())
             .destination(dto.getDestination())
+            .customTableHeaderTitleId(dto.getCustomTableHeaderTitleId())
             .build();
 
         return entity;

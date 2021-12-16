@@ -1,10 +1,13 @@
 package com.customized_delivery_ready.server.service.customize_delivery_ready;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -18,7 +21,9 @@ import com.customized_delivery_ready.server.model.custom_table_header.entity.Cus
 import com.customized_delivery_ready.server.model.ref_form.dto.RefFormGetDto;
 import com.customized_delivery_ready.server.model.ref_form.entity.RefFormEntity;
 
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -32,16 +37,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
-public class CustomDeliveryReadyDataService {
+public class DeliveryReadyCustomDataService {
 
     final int NAVER_DELIVERY_READY_COL_SIZE = 67;
-    final String[] dateFormatCellNum = {"6", "14", "27", "28", "29", "30", "56", "60"};
 
     @Autowired
     private CustomDeliveryReadyRepository customDeliveryReadyRepository;
 
     @Autowired
-    private CustomTableHeaderService customTableHeaderService;
+    private DeliveryReadyCustomTableHeaderService customTableHeaderService;
 
     @Autowired
     private RefFormService refFormService;
@@ -78,26 +82,32 @@ public class CustomDeliveryReadyDataService {
             JSONObject customDataJson = new JSONObject();
             JSONArray customDataJsonArr = new JSONArray();
             JSONObject customDetailJson = new JSONObject();
-            
+
             for(int j = 0; j < NAVER_DELIVERY_READY_COL_SIZE; j++){
                 customDataJson = new JSONObject();
                 customDataJson.put("cid", j);
                 customDataJson.put("id", UUID.randomUUID());
 
-                if(row.getCell(j) != null && row.getCell(j).getCellType() == CellType.STRING) {
-                    customDataJson.put("origin_col_data", row.getCell(j) != null ? row.getCell(j).getStringCellValue() : "");
-                }
-                else if(row.getCell(j) != null && row.getCell(j).getCellType() == CellType.NUMERIC) {
-                    if(Arrays.asList(dateFormatCellNum).contains(Integer.toString(j))){
-                        customDataJson.put("origin_col_data", row.getCell(j) != null ? row.getCell(j).getDateCellValue() : "");
-                    }else{
-                        customDataJson.put("origin_col_data", row.getCell(j) != null ? row.getCell(j).getNumericCellValue() : "");
+                String cellString = "";
+                Cell cell = row.getCell(j);
+
+                if(cell != null) {
+                    if (row.getCell(j).getCellType() == CellType.STRING) {
+                        cellString = cell.getStringCellValue();
+                    } else if (cell.getCellType() == CellType.NUMERIC) {
+                        if (DateUtil.isCellDateFormatted(cell)) {
+                            Date date = cell.getDateCellValue();
+                            cellString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(date);
+                        } else {
+                            cellString = String.valueOf((int)cell.getNumericCellValue());
+                        }
                     }
+                    customDataJson.put("origin_col_data", cellString);
                 }
                 customDataJson.put("ref_form_id", refDtos.get(j).getId());
-
                 customDataJsonArr.add(customDataJson);
             }
+
             customDetailJson.put("details", customDataJsonArr);
             
             CustomDeliveryReadyItemGetDto dto = CustomDeliveryReadyItemGetDto.builder()
@@ -113,7 +123,6 @@ public class CustomDeliveryReadyDataService {
 
             dtos.add(dto);
         }
-
         return dtos;
     }
 
@@ -123,60 +132,9 @@ public class CustomDeliveryReadyDataService {
         return dtos;
     }
 
-    // 처음 설계 했을 때, dto를 넘겨서 변환하도록 하는 코드
-    // public List<CustomizedDeliveryReadyItemResDto> changeToCustomizedDeliveryReadyExcelFile(List<CustomDeliveryReadyItemGetDto> dtos) {
-    //     List<CustomizedDeliveryReadyItemResDto> changedDtos = new ArrayList<>();
-    //     List<CustomTableHeaderEntity> headerEntities = customTableHeaderService.searchList();
-    //     List<CustomTableHeaderGetDto> headerDtos = headerEntities.stream().map(r -> CustomTableHeaderGetDto.toDto(r)).collect(Collectors.toList());
-
-    //     for(CustomDeliveryReadyItemGetDto dto : dtos) {
-    //         JSONArray details = this.objectToJsonArray(dto.getDeliveryReadyCustomItem().get("details"));
-    //         JSONArray customizedArr = new JSONArray();
-
-    //         // header를 돌면서 ref_form_id가 존재하지 않으면 jsonObject에 null값 추가.
-    //         // ref_form_id 가 존재하면 details : [{}, {}, {}, ... {}] 67개 돌면서
-    //         // ref_form_id 와 {}의 ref_form_id가 동일하지 않으면 다음 {}검사, 동일하면 origin_col_data jsonObject추가하고 break.
-    //         for (CustomTableHeaderGetDto headerDto : headerDtos) {
-    //             JSONObject customizedJson = new JSONObject();
-    //             if (headerDto.getRefFormId() != null) {
-    //                 for(int i = 0; i < NAVER_DELIVERY_READY_COL_SIZE; i++) {
-    //                     JSONObject detail = this.objectToJsonObject(details.get(i));
-    //                     String originColData = detail.get("origin_col_data") != null ? detail.get("origin_col_data").toString() : null;
-    //                     UUID refFormId = detail.get("ref_form_id") != null ? UUID.fromString(detail.get("ref_form_id").toString()) : null;
-
-    //                     if(headerDto.getRefFormId().equals(refFormId)) {
-    //                         customizedJson.put("id", UUID.randomUUID());
-    //                         customizedJson.put("custom_col_data", originColData);
-    //                         customizedJson.put("ref_form_id", refFormId);
-    //                         customizedArr.add(customizedJson);
-    //                         break;
-    //                     }
-    //                 }
-    //             } else {
-    //                 customizedJson.put("id", UUID.randomUUID());
-    //                 customizedJson.put("custom_col_data", null);
-    //                 customizedJson.put("ref_form_id", null);
-    //                 customizedArr.add(customizedJson);
-    //             }
-    //         }
-                
-    //         JSONObject detailObj = new JSONObject();
-    //         detailObj.put("details", customizedArr);
-
-    //         CustomizedDeliveryReadyItemResDto resDto = CustomizedDeliveryReadyItemResDto.builder()
-    //             .id(UUID.randomUUID())
-    //             .customizedDeliveryReadyItem(detailObj)
-    //             .build();
-
-    //         changedDtos.add(resDto);
-    //     }
-
-    //     return changedDtos;
-    // }
-
-    public List<CustomizedDeliveryReadyItemResDto> changeToCustomizedDeliveryReadyExcelFile(List<CustomizedDeliveryReadyItemResDto> dtos) {
+    public List<CustomizedDeliveryReadyItemResDto> changeToCustomizedDeliveryReadyExcelFile(List<CustomizedDeliveryReadyItemResDto> dtos, Map<String, Object> query) {
         List<CustomizedDeliveryReadyItemResDto> changedDtos = new ArrayList<>();
-        List<CustomTableHeaderEntity> headerEntities = customTableHeaderService.searchList();
+        List<CustomTableHeaderEntity> headerEntities = customTableHeaderService.searchList(query);
         List<CustomTableHeaderGetDto> headerDtos = headerEntities.stream().map(r -> CustomTableHeaderGetDto.toDto(r)).collect(Collectors.toList());
 
         for(CustomizedDeliveryReadyItemResDto dto : dtos) {
@@ -245,67 +203,9 @@ public class CustomDeliveryReadyDataService {
         return jsonObject;
     }
 
-    // // test
-    // public List<CustomizedDeliveryReadyItemResDto> searchAllCustomDeliveryReadyItem() {
-    //     List<CustomizedDeliveryReadyItemResDto> changedDtos = new ArrayList<>();
-    //     List<CustomTableHeaderEntity> headerEntities = customTableHeaderService.searchList();
-    //     List<CustomTableHeaderGetDto> headerDtos = headerEntities.stream().map(r -> CustomTableHeaderGetDto.toDto(r)).collect(Collectors.toList());
-    //     List<CustomDeliveryReadyItemEntity> entities = customDeliveryReadyRepository.searchAll();
-    //     List<CustomDeliveryReadyItemGetDto> dtos = entities.stream().map(r -> CustomDeliveryReadyItemGetDto.toDto(r)).collect(Collectors.toList());
-
-    //     for(CustomDeliveryReadyItemGetDto dto : dtos) {
-    //         JSONArray details = this.objectToJsonArray(dto.getDeliveryReadyCustomItem().get("details"));
-    //         JSONArray customizedArr = new JSONArray();
-
-    //         // header를 돌면서 ref_form_id가 존재하지 않으면 jsonObject에 null값 추가.
-    //         // ref_form_id 가 존재하면 details : [{}, {}, {}, ... {}] 67개 돌면서
-    //         // ref_form_id 와 {}의 ref_form_id가 동일하지 않으면 다음 {}검사, 동일하면 origin_col_data jsonObject추가하고 break.
-    //         // 리택토링 하기. Set사용?
-    //         for (CustomTableHeaderGetDto headerDto : headerDtos) {
-    //             JSONObject customizedJson = new JSONObject();
-    //             if (headerDto.getRefFormId() != null) {
-    //                 for(int i = 0; i < NAVER_DELIVERY_READY_COL_SIZE; i++) {
-    //                     JSONObject detail = this.objectToJsonObject(details.get(i));
-    //                     String originColData = detail.get("origin_col_data") != null ? detail.get("origin_col_data").toString() : null;
-    //                     UUID refFormId = detail.get("ref_form_id") != null ? UUID.fromString(detail.get("ref_form_id").toString()) : null;
-
-    //                     if(headerDto.getRefFormId().equals(refFormId)) {
-    //                         customizedJson.put("id", UUID.randomUUID());
-    //                         customizedJson.put("custom_col_data", originColData);
-    //                         customizedJson.put("ref_form_id", refFormId);
-    //                         customizedArr.add(customizedJson);
-    //                         break;
-    //                     }
-    //                 }
-    //             } else {
-    //                 customizedJson.put("id", UUID.randomUUID());
-    //                 customizedJson.put("custom_col_data", null);
-    //                 customizedJson.put("ref_form_id", null);
-    //                 customizedArr.add(customizedJson);
-    //             }
-    //         }
-
-    //         JSONObject detailObj = new JSONObject();
-    //         detailObj.put("details", customizedArr);
-                
-    //         CustomizedDeliveryReadyItemResDto resDto = CustomizedDeliveryReadyItemResDto.builder()
-    //             .id(UUID.randomUUID())
-    //             .customizedDeliveryReadyItem(detailObj)
-    //             .build();
-
-    //         changedDtos.add(resDto);
-    //     }
-
-    //     return changedDtos;
-    // }
-
-    // public List<CustomDeliveryReadyItemEntity> searchTestAllCustomDeliveryReadyItem() {
-    //     List<CustomDeliveryReadyItemEntity> entities = customDeliveryReadyRepository.searchTest();
-    //     return entities;
-    // }
-
-    public List<CustomizedDeliveryReadyItemResDto> searchAllCustomDeliveryReadyItem() {
-        List<String> resultList = customDeliveryReadyRepository.searchListDeliveryReadyCustomItem();
+    public List<CustomizedDeliveryReadyItemResDto> searchAllCustomDeliveryReadyItem(Map<String, Object> query) {
+        UUID titleId = UUID.fromString(query.get("titleId").toString());
+        List<String> resultList = customDeliveryReadyRepository.searchListDeliveryReadyCustomItem(titleId);
         List<CustomizedDeliveryReadyItemResDto> resDtos = new ArrayList<>();
         
         try{
@@ -324,7 +224,7 @@ public class CustomDeliveryReadyDataService {
         } catch(ParseException e) {
         }
 
-        List<CustomizedDeliveryReadyItemResDto> changeDtos =  this.changeToCustomizedDeliveryReadyExcelFile(resDtos);
+        List<CustomizedDeliveryReadyItemResDto> changeDtos =  this.changeToCustomizedDeliveryReadyExcelFile(resDtos, query);
 
         return changeDtos;
     }

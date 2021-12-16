@@ -21,6 +21,7 @@ public class CustomTableHeaderGetDto {
     private String title;
     private String customColName;
     private UUID refFormId;
+    private UUID customTableHeaderTitleId;
 
     public static CustomTableHeaderGetDto toDto(CustomTableHeaderEntity entity) {
         CustomTableHeaderGetDto dto = CustomTableHeaderGetDto.builder()
@@ -28,6 +29,7 @@ public class CustomTableHeaderGetDto {
             .title(entity.getTitle())
             .customColName(entity.getCustomColName())
             .refFormId(entity.getRefFormId())
+            .customTableHeaderTitleId(entity.getCustomTableHeaderTitleId())
             .build();
 
         return dto;

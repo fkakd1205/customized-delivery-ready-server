@@ -10,21 +10,32 @@ import java.util.stream.Collectors;
 import com.customized_delivery_ready.server.model.custom_table_header.dto.CustomTableHeaderGetDto;
 import com.customized_delivery_ready.server.model.custom_table_header.entity.CustomTableHeaderEntity;
 import com.customized_delivery_ready.server.model.custom_table_header.repository.CustomTableHeaderRepository;
+import com.customized_delivery_ready.server.model.custom_table_header_title.dto.CustomTableHeaderTitleGetDto;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class CustomTableHeaderService {
+public class DeliveryReadyCustomTableHeaderService {
     
     @Autowired
     private CustomTableHeaderRepository customTableHeaderRepository;
 
+    @Autowired
+    private DeliveryReadyCustomTableHeaderTitleService deliveryReadyCustomTableHeaderTitleService;
+
     public List<CustomTableHeaderEntity> createList(List<CustomTableHeaderGetDto> dtos) {
         List<CustomTableHeaderEntity> entities = new ArrayList<>();
 
+        CustomTableHeaderTitleGetDto titleDto = CustomTableHeaderTitleGetDto.builder()
+            .id(UUID.randomUUID())
+            .title(dtos.get(0).getTitle())
+            .build();
+        deliveryReadyCustomTableHeaderTitleService.createOne(titleDto);
+
         for(CustomTableHeaderGetDto dto : dtos) {
             CustomTableHeaderEntity entity = CustomTableHeaderEntity.toEntity(dto);
+            entity.setCustomTableHeaderTitleId(UUID.randomUUID());
             entities.add(entity);
         }
         return customTableHeaderRepository.saveAll(entities);
@@ -41,8 +52,9 @@ public class CustomTableHeaderService {
         }
     }
 
-    public List<CustomTableHeaderEntity> searchList() {
-        return customTableHeaderRepository.findAll();
+    public List<CustomTableHeaderEntity> searchList(Map<String, Object> query) {
+        UUID titleId = UUID.fromString(query.get("titleId").toString());
+        return customTableHeaderRepository.findAllById(titleId);
     }
 
     public void updateList(List<CustomTableHeaderGetDto> dtos) {

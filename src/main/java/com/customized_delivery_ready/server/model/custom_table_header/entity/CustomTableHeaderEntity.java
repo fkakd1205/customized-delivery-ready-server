@@ -47,12 +47,17 @@ public class CustomTableHeaderEntity {
     @Column(name = "ref_form_id")
     private UUID refFormId;
 
+    @Type(type = "uuid-char")
+    @Column(name = "custom_table_header_title_id")
+    private UUID customTableHeaderTitleId;
+
     public static CustomTableHeaderEntity toEntity(CustomTableHeaderGetDto dto) {
         CustomTableHeaderEntity entity = CustomTableHeaderEntity.builder()
             .id(dto.getId())
             .title(dto.getTitle())
             .customColName(dto.getCustomColName())
             .refFormId(dto.getRefFormId())
+            .customTableHeaderTitleId(dto.getCustomTableHeaderTitleId())
             .build();
 
         return entity;

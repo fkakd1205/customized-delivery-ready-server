@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.customized_delivery_ready.server.model.custom_table_header.dto.CustomTableHeaderGetDto;
 import com.customized_delivery_ready.server.model.message.Message;
-import com.customized_delivery_ready.server.service.customize_delivery_ready.CustomTableHeaderService;
+import com.customized_delivery_ready.server.service.customize_delivery_ready.DeliveryReadyCustomTableHeaderService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,38 +19,38 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/delivery-ready/customize/header")
-public class DeliveryReadyCustomHeaderApiController {
+public class DeliveryReadyCustomTableHeaderApiController {
     
     @Autowired
-    private CustomTableHeaderService customTableHeaderService;
-
-    @PostMapping("/list")
-    public ResponseEntity<?> createCustomTableHeader(@RequestBody List<CustomTableHeaderGetDto> dtos) {
-        Message message = new Message();
-
-        message.setData(customTableHeaderService.createList(dtos));
-        message.setStatus(HttpStatus.OK);
-        message.setMessage("success");
-
-        return new ResponseEntity<>(message, message.getStatus());
-    }
+    private DeliveryReadyCustomTableHeaderService deliveryReadyCustomTableHeaderService;
 
     @GetMapping("/one")
     public ResponseEntity<?> getCustomTableHeader(@RequestParam Map<String, Object> query) {
         Message message = new Message();
 
-        message.setData(customTableHeaderService.searchOne(query));
+        message.setData(deliveryReadyCustomTableHeaderService.searchOne(query));
         message.setStatus(HttpStatus.OK);
         message.setMessage("success");
 
         return new ResponseEntity<>(message, message.getStatus());
     }
 
-    @GetMapping("/list")
-    public ResponseEntity<?> getAllCustomTableHeader() {
+    @GetMapping("/selected")
+    public ResponseEntity<?> getAllCustomTableHeader(@RequestParam Map<String, Object> query) {
         Message message = new Message();
 
-        message.setData(customTableHeaderService.searchList());
+        message.setData(deliveryReadyCustomTableHeaderService.searchList(query));
+        message.setStatus(HttpStatus.OK);
+        message.setMessage("success");
+
+        return new ResponseEntity<>(message, message.getStatus());
+    }
+
+    @PostMapping("/list")
+    public ResponseEntity<?> createCustomTableHeader(@RequestBody List<CustomTableHeaderGetDto> dtos) {
+        Message message = new Message();
+
+        message.setData(deliveryReadyCustomTableHeaderService.createList(dtos));
         message.setStatus(HttpStatus.OK);
         message.setMessage("success");
 
@@ -61,12 +61,10 @@ public class DeliveryReadyCustomHeaderApiController {
     public ResponseEntity<?> updateCustomTableHeader(@RequestBody List<CustomTableHeaderGetDto> dtos) {
         Message message = new Message();
 
-        customTableHeaderService.updateList(dtos);
+        deliveryReadyCustomTableHeaderService.updateList(dtos);
         message.setStatus(HttpStatus.OK);
         message.setMessage("success");
 
         return new ResponseEntity<>(message, message.getStatus());
     }
-
-    // TODO :: 위 동작을 실행하기 전의 create 문 만들기
 }

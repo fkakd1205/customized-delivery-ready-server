@@ -27,6 +27,7 @@ public class CustomDeliveryReadyItemGetDto {
     private String optionInfo;
     private String receiver;
     private String destination;
+    private UUID customTableHeaderTitleId;
 
     public static CustomDeliveryReadyItemGetDto toDto(CustomDeliveryReadyItemEntity entity) {
         CustomDeliveryReadyItemGetDto dto = CustomDeliveryReadyItemGetDto.builder()
@@ -38,6 +39,7 @@ public class CustomDeliveryReadyItemGetDto {
             .optionInfo(entity.getOptionInfo())
             .receiver(entity.getReceiver())
             .destination(entity.getDestination())
+            .customTableHeaderTitleId(entity.getCustomTableHeaderTitleId())
             .build();
 
         return dto;

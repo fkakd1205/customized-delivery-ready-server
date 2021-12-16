@@ -1,10 +1,11 @@
 package com.customized_delivery_ready.server.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import com.customized_delivery_ready.server.model.custom_data.dto.CustomDeliveryReadyItemGetDto;
 import com.customized_delivery_ready.server.model.message.Message;
-import com.customized_delivery_ready.server.service.customize_delivery_ready.CustomDeliveryReadyDataService;
+import com.customized_delivery_ready.server.service.customize_delivery_ready.DeliveryReadyCustomDataService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,24 +23,35 @@ import org.springframework.web.multipart.MultipartFile;
 public class DeliveryReadyCustomDataApiController {
     
     @Autowired
-    private CustomDeliveryReadyDataService customDeliveryReadyDataService;
+    private DeliveryReadyCustomDataService deliveryReadyCustomDataService;
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadDeliveryReadyExcelFile(@RequestParam("file") MultipartFile file) {
         Message message = new Message();
 
-        message.setData(customDeliveryReadyDataService.uploadDeliveryReadyExcelFile(file));
+        message.setData(deliveryReadyCustomDataService.uploadDeliveryReadyExcelFile(file));
         message.setStatus(HttpStatus.OK);
         message.setMessage("success");
 
         return new ResponseEntity<>(message, message.getStatus());
     }
 
+    // @PostMapping("/upload/test")
+    // public ResponseEntity<?> uploadDeliveryReadyExcelFileTest(@RequestParam("file") MultipartFile file) {
+    //     Message message = new Message();
+
+    //     message.setData(deliveryReadyCustomDataService.uploadDeliveryReadyExcelFileTest(file));
+    //     message.setStatus(HttpStatus.OK);
+    //     message.setMessage("success");
+
+    //     return new ResponseEntity<>(message, message.getStatus());
+    // }
+
     @PostMapping("/store")
     public ResponseEntity<?> storeDeliveryReadyExcelFile(@RequestBody List<CustomDeliveryReadyItemGetDto> dtos) {
         Message message = new Message();
 
-        message.setData(customDeliveryReadyDataService.storeDeliveryReadyExcelFile(dtos));
+        message.setData(deliveryReadyCustomDataService.storeDeliveryReadyExcelFile(dtos));
         message.setStatus(HttpStatus.OK);
         message.setMessage("success");
 
@@ -50,7 +62,7 @@ public class DeliveryReadyCustomDataApiController {
     // public ResponseEntity<?> changeToCustomizeDeliveryReadyExcelFile(@RequestBody List<CustomDeliveryReadyItemGetDto> dtos) {
     //     Message message = new Message();
 
-    //     message.setData(customDeliveryReadyDataService.changeToCustomizedDeliveryReadyExcelFile(dtos));
+    //     message.setData(deliveryReadyCustomDataService.changeToCustomizedDeliveryReadyExcelFile(dtos));
     //     message.setStatus(HttpStatus.OK);
     //     message.setMessage("success");
 
@@ -58,10 +70,10 @@ public class DeliveryReadyCustomDataApiController {
     // }
 
     @GetMapping("/customized")
-    public ResponseEntity<?> searchAllCustomDeliveryReadyItem() {
+    public ResponseEntity<?> searchAllCustomDeliveryReadyItem(@RequestParam Map<String, Object> query) {
         Message message = new Message();
 
-        message.setData(customDeliveryReadyDataService.searchAllCustomDeliveryReadyItem());
+        message.setData(deliveryReadyCustomDataService.searchAllCustomDeliveryReadyItem(query));
         message.setStatus(HttpStatus.OK);
         message.setMessage("success");
 

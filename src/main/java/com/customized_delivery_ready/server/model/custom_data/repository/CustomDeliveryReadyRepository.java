@@ -1,6 +1,7 @@
 package com.customized_delivery_ready.server.model.custom_data.repository;
 
 import java.util.List;
+import java.util.UUID;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -33,8 +34,10 @@ public class CustomDeliveryReadyRepository {
         }
     }
 
-    public List<String> searchListDeliveryReadyCustomItem() {
-        List<String> list = entityManager.createNativeQuery("SELECT delivery_ready_custom_item FROM custom_delivery_ready_item").getResultList();
+    public List<String> searchListDeliveryReadyCustomItem(UUID titleId) {
+        List<String> list = entityManager.createNativeQuery("SELECT delivery_ready_custom_item FROM custom_delivery_ready_item WHERE custom_table_header_title_id = ?")
+                .setParameter(1, titleId.toString())
+                .getResultList();
         return list;
     }
 }
