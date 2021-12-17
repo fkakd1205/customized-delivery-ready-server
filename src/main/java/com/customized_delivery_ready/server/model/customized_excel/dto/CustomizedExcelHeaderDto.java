@@ -22,5 +22,5 @@ public class CustomizedExcelHeaderDto {
     private String downloadHeaderTitle;
     private JSONObject uploadHeaderDetail;
     private JSONObject downloadHeaderDetail;
-    private Integer startRowNumber;
+    private Integer rowStartNumber;
 }

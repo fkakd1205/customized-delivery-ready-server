@@ -52,16 +52,16 @@ public class CustomizedExcelHeaderService {
         JSONArray downloadHeaderDetail = this.objectToJsonArray(headerDto.getDownloadHeaderDetail().get("details"));
 
         // 데이터 시작 위치
-        Row row = worksheet.getRow(headerDto.getStartRowNumber()-1);
+        Row row = worksheet.getRow(headerDto.getRowStartNumber()-1);
 
-
-        // uploadHeaderDetail에 따라 업로드 되는 엑셀의 데이터를 가공
         JSONObject customDataJson = new JSONObject();
         JSONArray customDataJsonArr = new JSONArray();
         JSONObject customDetailJson = new JSONObject();
         JSONArray customDetailJsonArr = new JSONArray();
 
-        // 업로드 엑셀의 항목 개수만큼 for문을 돈다
+        // 업로드 엑셀의 열 개수만큼 for문을 돈다
+        // uploadHeaderDetail에 따라 업로드 되는 엑셀의 데이터를 가져온다
+        // TODO :: 여기서 바로 downloadHeader를 활용하면 어떨까
         for(int colNum = 0; colNum < row.getPhysicalNumberOfCells(); colNum++) {
             customDetailJson = new JSONObject();
             for(int i = 0; i < uploadHeaderDetail.size(); i++) {
@@ -70,10 +70,10 @@ public class CustomizedExcelHeaderService {
                 String cellString = "";
                 Cell cell = row.getCell(colNum);
     
-                if(colNum == (int)detail.get("cellNumber")) {
+                if(colNum == Integer.parseInt(detail.get("cellNumber").toString())) {
                     customDataJsonArr = new JSONArray();
                     // 세로개수
-                    for(int rowNum = headerDto.getStartRowNumber()-1; rowNum < worksheet.getPhysicalNumberOfRows(); rowNum++){
+                    for(int rowNum = headerDto.getRowStartNumber()-1; rowNum < worksheet.getPhysicalNumberOfRows(); rowNum++){
                         row = worksheet.getRow(rowNum);
                         cell = row.getCell(colNum);
 
@@ -93,7 +93,7 @@ public class CustomizedExcelHeaderService {
                         customDataJson.put("id", UUID.randomUUID().toString());
                         customDataJson.put("originColData", cellString);
                         customDataJson.put("headerName", detail.get("headerName"));
-                        customDataJson.put("targetCellNumber", (int)detail.get("cellNumber"));
+                        customDataJson.put("targetCellNumber", Integer.parseInt(detail.get("cellNumber").toString()));
                         customDataJsonArr.add(customDataJson);
                     }
                     break;
@@ -103,11 +103,11 @@ public class CustomizedExcelHeaderService {
             customDetailJsonArr.add(customDetailJson);
         }
 
-        // downloadHeaderDetail에 따라 다운로드 되는 엑셀의 데이터를 가공
         JSONObject resultDataJson = new JSONObject();
         JSONArray resultDataJsonArr = new JSONArray();
         JSONObject resultDetailJson = new JSONObject();
 
+        // downloadHeaderDetail에 따라 다운로드 되는 엑셀의 데이터를 가공
         for(int i = 0; i < downloadHeaderDetail.size(); i++) {
             JSONObject detail = this.objectToJsonObject(downloadHeaderDetail.get(i));
             resultDetailJson = new JSONObject();
@@ -117,11 +117,11 @@ public class CustomizedExcelHeaderService {
                 JSONArray customizedDetailsArr = this.objectToJsonArray(customizedData.get("customizedDetails"));
 
                 // 데이터 row 개수만큼 fixedValue 설정
-                if ((int) detail.get("targetCellNumber") == -1) {
+                if (Integer.parseInt(detail.get("targetCellNumber").toString()) == -1) {
                     JSONArray fixedDataJsonArr = new JSONArray();
                     JSONObject fixedDataJson = new JSONObject();
 
-                    for(int k = headerDto.getStartRowNumber()-1; k < worksheet.getPhysicalNumberOfRows(); k++) {
+                    for(int k = headerDto.getRowStartNumber()-1; k < worksheet.getPhysicalNumberOfRows(); k++) {
                         fixedDataJson.put("id", UUID.randomUUID().toString());
                         fixedDataJson.put("targetCellNumber", -1);
                         fixedDataJson.put("originColData", detail.get("fixedValue"));
@@ -137,7 +137,8 @@ public class CustomizedExcelHeaderService {
                         JSONObject customizedDetailsData = this.objectToJsonObject(customizedDetailsArr.get(k));
     
                         // download 커스터마이징 항목의 targetCellNumber 순서로 데이터 정렬 
-                        if ((int)detail.get("targetCellNumber") == (int)customizedDetailsData.get("targetCellNumber")) {
+                        // TODO :: 원래 양식의 헤더 네임이 download엑셀에 설정된다 수정필요.
+                        if (Integer.parseInt(detail.get("targetCellNumber").toString()) == Integer.parseInt(customizedDetailsData.get("targetCellNumber").toString())) {
                             resultDetailJson.put("customizedColData", customizedDetailsArr);
                             resultDataJsonArr.add(resultDetailJson);
                             break;
@@ -145,15 +146,6 @@ public class CustomizedExcelHeaderService {
                     }
                 }
             }
-            resultDataJson.put("details", resultDataJsonArr);
-
-            CustomizedExcelDataDto excelDto = CustomizedExcelDataDto.builder()
-                .cid(i)
-                .id(UUID.randomUUID())
-                .customizedData(resultDataJson)
-                .build();
-
-            // excelDtos.add(excelDto);
         }
         resultDataJson.put("details", resultDataJsonArr);
 
@@ -162,7 +154,7 @@ public class CustomizedExcelHeaderService {
             .id(UUID.randomUUID())
             .customizedData(resultDataJson)
             .build();
-        // return excelDtos;
+
         return excelDto;
     }
 
