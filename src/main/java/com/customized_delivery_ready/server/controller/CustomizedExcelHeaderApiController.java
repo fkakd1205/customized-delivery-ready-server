@@ -59,6 +59,8 @@ public class CustomizedExcelHeaderApiController {
         JSONArray jsonArr = customizedExcelHeaderService.objectToJsonArray(dto.getCustomizedData().get("details"));
 
         row = sheet.createRow(rowNum++);
+        
+        // headerName 설정
         for(int i = 0; i < jsonArr.size(); i++) {
             JSONObject jsonObj = customizedExcelHeaderService.objectToJsonObject(jsonArr.get(i));
             JSONArray jsonArr2 = customizedExcelHeaderService.objectToJsonArray(jsonObj.get("customizedColData"));
@@ -72,17 +74,16 @@ public class CustomizedExcelHeaderApiController {
             JSONArray jsonArr2 = customizedExcelHeaderService.objectToJsonArray(jsonObj.get("customizedColData"));
             
             for(int j = 0; j < jsonArr2.size(); j++) {
-                if(i == 0) row = sheet.createRow(rowNum++);
+                if (i == 0) row = sheet.createRow(rowNum++);
                 JSONObject jsonObj2 = customizedExcelHeaderService.objectToJsonObject(jsonArr2.get(j));
-                
-                // TODO :: fixedValue 모든 row에 채우자
-                // if((int)jsonObj2.get("targetCellNumber") == -1){
-                //     for(int k = 0; k < json)
-                // }
                 row = sheet.getRow(j+1);
                 cell = row.createCell(i);
                 cell.setCellValue(jsonObj2.get("originColData").toString());
             }
+        }
+
+        for(int i = 0; i < jsonArr.size(); i++){
+            sheet.autoSizeColumn(i);
         }
 
         response.setContentType("ms-vnd/excel");

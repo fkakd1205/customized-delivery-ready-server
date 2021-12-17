@@ -47,16 +47,21 @@ public class CustomizedExcelHeaderService {
      * @return List::DeliveryReadyNaverItemDto::
      */
     private CustomizedExcelDataDto getCustomizedExcelForm(Sheet worksheet, CustomizedExcelHeaderDto headerDto) {
+        // List<CustomizedExcelDataDto> excelDtos = new ArrayList<>();
         JSONArray uploadHeaderDetail = this.objectToJsonArray(headerDto.getUploadHeaderDetail().get("details"));
         JSONArray downloadHeaderDetail = this.objectToJsonArray(headerDto.getDownloadHeaderDetail().get("details"));
 
+        // 데이터 시작 위치
         Row row = worksheet.getRow(headerDto.getStartRowNumber()-1);
 
+
+        // uploadHeaderDetail에 따라 업로드 되는 엑셀의 데이터를 가공
         JSONObject customDataJson = new JSONObject();
         JSONArray customDataJsonArr = new JSONArray();
         JSONObject customDetailJson = new JSONObject();
         JSONArray customDetailJsonArr = new JSONArray();
 
+        // 업로드 엑셀의 항목 개수만큼 for문을 돈다
         for(int colNum = 0; colNum < row.getPhysicalNumberOfCells(); colNum++) {
             customDetailJson = new JSONObject();
             for(int i = 0; i < uploadHeaderDetail.size(); i++) {
@@ -67,6 +72,7 @@ public class CustomizedExcelHeaderService {
     
                 if(colNum == (int)detail.get("cellNumber")) {
                     customDataJsonArr = new JSONArray();
+                    // 세로개수
                     for(int rowNum = headerDto.getStartRowNumber()-1; rowNum < worksheet.getPhysicalNumberOfRows(); rowNum++){
                         row = worksheet.getRow(rowNum);
                         cell = row.getCell(colNum);
@@ -97,6 +103,7 @@ public class CustomizedExcelHeaderService {
             customDetailJsonArr.add(customDetailJson);
         }
 
+        // downloadHeaderDetail에 따라 다운로드 되는 엑셀의 데이터를 가공
         JSONObject resultDataJson = new JSONObject();
         JSONArray resultDataJsonArr = new JSONArray();
         JSONObject resultDetailJson = new JSONObject();
@@ -105,36 +112,48 @@ public class CustomizedExcelHeaderService {
             JSONObject detail = this.objectToJsonObject(downloadHeaderDetail.get(i));
             resultDetailJson = new JSONObject();
 
-            for(int k = 0; k < customDetailJsonArr.size(); k++) {
-                JSONObject customizedData = this.objectToJsonObject(customDetailJsonArr.get(k));
+            for(int j = 0; j < customDetailJsonArr.size(); j++) {
+                JSONObject customizedData = this.objectToJsonObject(customDetailJsonArr.get(j));
                 JSONArray customizedDetailsArr = this.objectToJsonArray(customizedData.get("customizedDetails"));
 
-                // fixedValue설정
+                // 데이터 row 개수만큼 fixedValue 설정
                 if ((int) detail.get("targetCellNumber") == -1) {
                     JSONArray fixedDataJsonArr = new JSONArray();
                     JSONObject fixedDataJson = new JSONObject();
 
-                    fixedDataJson.put("id", UUID.randomUUID().toString());
-                    fixedDataJson.put("targetCellNumber", -1);
-                    fixedDataJson.put("originColData", detail.get("fixedValue"));
-                    fixedDataJson.put("headerName", detail.get("headerName"));
-                    fixedDataJsonArr.add(fixedDataJson);
-                    resultDetailJson.put("customizedColData", fixedDataJsonArr);
+                    for(int k = headerDto.getStartRowNumber()-1; k < worksheet.getPhysicalNumberOfRows(); k++) {
+                        fixedDataJson.put("id", UUID.randomUUID().toString());
+                        fixedDataJson.put("targetCellNumber", -1);
+                        fixedDataJson.put("originColData", detail.get("fixedValue"));
+                        fixedDataJson.put("headerName", detail.get("headerName"));
+                        fixedDataJsonArr.add(fixedDataJson);
+                        resultDetailJson.put("customizedColData", fixedDataJsonArr);
+                    }
                     resultDataJsonArr.add(resultDetailJson);
                     break;
-                }
-
-                for (int j = 0; j < customizedDetailsArr.size(); j++) {
-                    resultDetailJson = new JSONObject();
-                    JSONObject customizedDetailsData = this.objectToJsonObject(customizedDetailsArr.get(j));
-
-                    if ((int) customizedDetailsData.get("targetCellNumber") == (int) detail.get("targetCellNumber")) {
-                        resultDetailJson.put("customizedColData", customizedDetailsArr);
-                        resultDataJsonArr.add(resultDetailJson);
-                        break;
+                }else{
+                    for (int k = 0; k < customizedDetailsArr.size(); k++) {
+                        resultDetailJson = new JSONObject();
+                        JSONObject customizedDetailsData = this.objectToJsonObject(customizedDetailsArr.get(k));
+    
+                        // download 커스터마이징 항목의 targetCellNumber 순서로 데이터 정렬 
+                        if ((int)detail.get("targetCellNumber") == (int)customizedDetailsData.get("targetCellNumber")) {
+                            resultDetailJson.put("customizedColData", customizedDetailsArr);
+                            resultDataJsonArr.add(resultDetailJson);
+                            break;
+                        }
                     }
                 }
             }
+            resultDataJson.put("details", resultDataJsonArr);
+
+            CustomizedExcelDataDto excelDto = CustomizedExcelDataDto.builder()
+                .cid(i)
+                .id(UUID.randomUUID())
+                .customizedData(resultDataJson)
+                .build();
+
+            // excelDtos.add(excelDto);
         }
         resultDataJson.put("details", resultDataJsonArr);
 
@@ -143,131 +162,8 @@ public class CustomizedExcelHeaderService {
             .id(UUID.randomUUID())
             .customizedData(resultDataJson)
             .build();
+        // return excelDtos;
         return excelDto;
-
-
-
-            // for(int colNum = 0; colNum < row.getPhysicalNumberOfCells(); colNum++){
-            //     for(int j = 0; j < uploadHeaderDetail.size(); j++) {
-            //         JSONObject detail = this.objectToJsonObject(uploadHeaderDetail.get(j));
-    
-            //         String cellString = "";
-            //         Cell cell = row.getCell(colNum);
-    
-            //         if(rowNum == (int)detail.get("cellNumber")) {
-            //             switch(detail.get("dataType").toString()) {
-            //                 case "STRING" : 
-            //                     System.out.println(detail.get("headerName"));
-            //                     cellString = cell.getStringCellValue();
-            //                     break;
-            //                 case "DATE" :
-            //                     Date date = cell.getDateCellValue();
-            //                     cellString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(date);
-            //                     break;
-            //                 case "NUMERIC" :
-            //                     cellString = String.valueOf((int)cell.getNumericCellValue());
-            //                     break;
-            //             }
-
-            //             customDataJson = new JSONObject();
-            //             customDataJson.put("cid", j);
-            //             customDataJson.put("id", UUID.randomUUID());
-            //             customDataJson.put("originColData", cellString);
-            //             customDataJson.put("targetCellNumber", (int)detail.get("cellNumber"));
-    
-            //             customDataJsonArr.add(customDataJson);
-            //             break;
-            //         }
-            //     }
-            // }
-
-
-        // for (int rowNum = headerDto.getStartRowNumber()-1; rowNum < worksheet.getPhysicalNumberOfRows(); rowNum++) {
-        //     Row row = worksheet.getRow(rowNum);
-
-        //     JSONObject customDataJson = new JSONObject();
-        //     JSONArray customDataJsonArr = new JSONArray();
-        //     JSONObject customDetailJson = new JSONObject();
-
-        //     for(int colNum = 0; colNum < row.getPhysicalNumberOfCells(); colNum++){
-        //         for(int j = 0; j < uploadHeaderDetail.size(); j++) {
-        //             JSONObject detail = this.objectToJsonObject(uploadHeaderDetail.get(j));
-    
-        //             String cellString = "";
-        //             Cell cell = row.getCell(colNum);
-    
-        //             if(rowNum == (int)detail.get("cellNumber")) {
-        //                 switch(detail.get("dataType").toString()) {
-        //                     case "STRING" : 
-        //                         System.out.println(detail.get("headerName"));
-        //                         cellString = cell.getStringCellValue();
-        //                         break;
-        //                     case "DATE" :
-        //                         Date date = cell.getDateCellValue();
-        //                         cellString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(date);
-        //                         break;
-        //                     case "NUMERIC" :
-        //                         cellString = String.valueOf((int)cell.getNumericCellValue());
-        //                         break;
-        //                 }
-
-        //                 customDataJson = new JSONObject();
-        //                 customDataJson.put("cid", j);
-        //                 customDataJson.put("id", UUID.randomUUID());
-        //                 customDataJson.put("originColData", cellString);
-        //                 customDataJson.put("targetCellNumber", (int)detail.get("cellNumber"));
-    
-        //                 customDataJsonArr.add(customDataJson);
-        //                 break;
-        //             }
-        //         }
-        //     }
-        //     System.out.println(customDataJsonArr);
-
-            // JSONObject customDataJson = new JSONObject();
-            // JSONArray customDataJsonArr = new JSONArray();
-            // JSONObject customDetailJson = new JSONObject();
-
-            // for(int j = 0; j < NAVER_DELIVERY_READY_COL_SIZE; j++){
-            //     customDataJson = new JSONObject();
-            //     customDataJson.put("cid", j);
-            //     customDataJson.put("id", UUID.randomUUID());
-
-            //     String cellString = "";
-            //     Cell cell = row.getCell(j);
-
-            //     if(cell != null) {
-            //         if (row.getCell(j).getCellType() == CellType.STRING) {
-            //             cellString = cell.getStringCellValue();
-            //         } else if (cell.getCellType() == CellType.NUMERIC) {
-            //             if (DateUtil.isCellDateFormatted(cell)) {
-            //                 Date date = cell.getDateCellValue();
-            //                 cellString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(date);
-            //             } else {
-            //                 cellString = String.valueOf((int)cell.getNumericCellValue());
-            //             }
-            //         }
-            //         customDataJson.put("origin_col_data", cellString);
-            //     }
-            //     customDataJson.put("ref_form_id", refDtos.get(j).getId());
-            //     customDataJsonArr.add(customDataJson);
-            // }
-
-            // customDetailJson.put("details", customDataJsonArr);
-            
-            // CustomizedExcelDataDto dto = CustomizedExcelDataDto.builder()
-            //     .id(UUID.randomUUID())
-            //     .deliveryReadyCustomItem(customDetailJson)
-            //     .orderNumber(row.getCell(1) != null ? row.getCell(1).getStringCellValue() : "")
-            //     .prodOrderNumber(row.getCell(0) != null ? row.getCell(0).getStringCellValue() : "")
-            //     .prodName(row.getCell(16) != null ? row.getCell(16).getStringCellValue() : "")
-            //     .optionInfo(row.getCell(18) != null ? row.getCell(18).getStringCellValue() : "")
-            //     .receiver(row.getCell(10) != null ? row.getCell(10).getStringCellValue() : "")
-            //     .destination(row.getCell(42) != null ? row.getCell(42).getStringCellValue() : "")
-            //     .build();
-
-            // dtos.add(dto);
-        // }
     }
 
     public JSONArray objectToJsonArray(Object object){
