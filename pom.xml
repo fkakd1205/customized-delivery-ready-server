@@ -105,6 +105,13 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+
+		<!-- hibernate type -->
+		<dependency>
+			<groupId>com.vladmihalcea</groupId>
+			<artifactId>hibernate-types-52</artifactId>
+			<version>2.14.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>

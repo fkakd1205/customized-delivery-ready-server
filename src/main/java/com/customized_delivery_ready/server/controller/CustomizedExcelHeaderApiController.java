@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.customized_delivery_ready.server.model.customized_excel.dto.CustomizedExcelDataDto;
 import com.customized_delivery_ready.server.model.customized_excel.dto.CustomizedExcelHeaderDto;
 import com.customized_delivery_ready.server.model.message.Message;
-import com.customized_delivery_ready.server.service.custmoized_excel.CustomizedExcelHeaderService;
+import com.customized_delivery_ready.server.service.customized_excel.CustomizedExcelHeaderService;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -63,7 +63,7 @@ public class CustomizedExcelHeaderApiController {
         // headerName 설정
         for(int i = 0; i < jsonArr.size(); i++) {
             JSONObject jsonObj = customizedExcelHeaderService.objectToJsonObject(jsonArr.get(i));
-            JSONArray jsonArr2 = customizedExcelHeaderService.objectToJsonArray(jsonObj.get("customizedColData"));
+            JSONArray jsonArr2 = customizedExcelHeaderService.objectToJsonArray(jsonObj.get("customizedDetails"));
             JSONObject jsonObj2 = customizedExcelHeaderService.objectToJsonObject(jsonArr2.get(0));
             cell = row.createCell(i);
             cell.setCellValue(jsonObj2.get("headerName").toString());
@@ -71,7 +71,7 @@ public class CustomizedExcelHeaderApiController {
 
         for(int i = 0; i < jsonArr.size(); i++) {
             JSONObject jsonObj = customizedExcelHeaderService.objectToJsonObject(jsonArr.get(i));
-            JSONArray jsonArr2 = customizedExcelHeaderService.objectToJsonArray(jsonObj.get("customizedColData"));
+            JSONArray jsonArr2 = customizedExcelHeaderService.objectToJsonArray(jsonObj.get("customizedDetails"));
             
             for(int j = 0; j < jsonArr2.size(); j++) {
                 if (i == 0) row = sheet.createRow(rowNum++);
