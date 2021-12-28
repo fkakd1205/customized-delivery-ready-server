@@ -9,7 +9,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import com.customized_delivery_ready.server.model.excel_translator_header.dto.ExcelTranslatorHeaderDetailDto;
+import com.customized_delivery_ready.server.model.excel_translator_header.dto.ExcelTranslatorUploadHeaderDetailDto;
+import com.customized_delivery_ready.server.model.excel_translator_header.dto.ExcelTranslatorDownloadHeaderDetailDto;
 import com.customized_delivery_ready.server.model.excel_translator_header.dto.ExcelTranslatorHeaderGetDto;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import com.vladmihalcea.hibernate.type.json.JsonStringType;
@@ -51,11 +52,11 @@ public class ExcelTranslatorHeaderEntity {
 
     @Type(type = "json")
     @Column(name = "upload_header_detail", columnDefinition = "json")
-    private ExcelTranslatorHeaderDetailDto uploadHeaderDetail = new ExcelTranslatorHeaderDetailDto();
+    private ExcelTranslatorUploadHeaderDetailDto uploadHeaderDetail = new ExcelTranslatorUploadHeaderDetailDto();
 
     @Type(type = "json")
     @Column(name = "download_header_detail", columnDefinition = "json")
-    private ExcelTranslatorHeaderDetailDto downloadHeaderDetail = new ExcelTranslatorHeaderDetailDto();
+    private ExcelTranslatorDownloadHeaderDetailDto downloadHeaderDetail = new ExcelTranslatorDownloadHeaderDetailDto();
 
     @Column(name = "row_start_number")
     private Integer rowStartNumber;

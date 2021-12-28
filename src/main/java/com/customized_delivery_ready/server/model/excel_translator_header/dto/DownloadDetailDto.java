@@ -1,7 +1,6 @@
 package com.customized_delivery_ready.server.model.excel_translator_header.dto;
 
-import java.util.List;
-
+import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,6 +13,10 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @NoArgsConstructor
 @Accessors(chain = true)
-public class ExcelTranslatorHeaderDetailDto {
-    private List<DetailDto> details;
+public class DownloadDetailDto {
+    private UUID id;
+    private String headerName;
+    private Integer targetCellNumber;
+    private String fixedValue;
+    private UUID uploadHeaderId;
 }

@@ -13,7 +13,8 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @NoArgsConstructor
 @Accessors(chain = true)
-public class DetailDto {
+public class UploadDetailDto {
     private UUID id;
     private String headerName;
+    private Integer cellNumber;
 }

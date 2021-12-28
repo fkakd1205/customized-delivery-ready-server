@@ -3,9 +3,6 @@ package com.customized_delivery_ready.server.model.excel_translator_header.dto;
 import java.util.UUID;
 
 import com.customized_delivery_ready.server.model.excel_translator_header.entity.ExcelTranslatorHeaderEntity;
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
-
-import org.hibernate.annotations.TypeDef;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,11 +20,11 @@ public class ExcelTranslatorHeaderGetDto {
     private UUID id;
     private String uploadHeaderTitle;
     private String downloadHeaderTitle;
-    private ExcelTranslatorHeaderDetailDto uploadHeaderDetail = new ExcelTranslatorHeaderDetailDto();
-    private ExcelTranslatorHeaderDetailDto downloadHeaderDetail = new ExcelTranslatorHeaderDetailDto();
+    private ExcelTranslatorUploadHeaderDetailDto uploadHeaderDetail = new ExcelTranslatorUploadHeaderDetailDto();
+    private ExcelTranslatorDownloadHeaderDetailDto downloadHeaderDetail = new ExcelTranslatorDownloadHeaderDetailDto();
     private Integer rowStartNumber;
 
-    public static ExcelTranslatorHeaderGetDto toEntity(ExcelTranslatorHeaderEntity entity) {
+    public static ExcelTranslatorHeaderGetDto toDto(ExcelTranslatorHeaderEntity entity) {
         ExcelTranslatorHeaderGetDto dto = ExcelTranslatorHeaderGetDto.builder()
             .id(entity.getId())
             .uploadHeaderTitle(entity.getUploadHeaderTitle())
