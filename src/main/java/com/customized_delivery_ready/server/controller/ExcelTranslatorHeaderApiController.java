@@ -124,4 +124,16 @@ public class ExcelTranslatorHeaderApiController {
             throw new IllegalArgumentException();
         }
     }
+
+    @PostMapping("/upload/test")
+    public ResponseEntity<?> uploadExcelFileTest(@RequestParam("file") MultipartFile file) {
+        Message message = new Message();
+
+        message.setData(excelTranslatorHeaderService.uploadExcelFileTest(file));
+        message.setStatus(HttpStatus.OK);
+        message.setMessage("success");
+
+        return new ResponseEntity<>(message, message.getStatus());
+    }
+
 }

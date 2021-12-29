@@ -6,15 +6,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.persistence.Convert;
-
-import com.customized_delivery_ready.server.model.excel_translator_header.dto.UploadDetailDto;
-import com.customized_delivery_ready.server.model.excel_translator_header.dto.ExcelTranslatorUploadHeaderDetailDto;
 import com.customized_delivery_ready.server.model.excel_translator_data.dto.ExcelTranslatorDataGetDto;
 import com.customized_delivery_ready.server.model.excel_translator_data.dto.TranslatedDetailDto;
 import com.customized_delivery_ready.server.model.excel_translator_data.dto.ExcelTranslatorDataDetailDto;
@@ -22,6 +17,9 @@ import com.customized_delivery_ready.server.model.excel_translator_header.dto.Do
 import com.customized_delivery_ready.server.model.excel_translator_header.dto.ExcelTranslatorHeaderGetDto;
 import com.customized_delivery_ready.server.model.excel_translator_header.entity.ExcelTranslatorHeaderEntity;
 import com.customized_delivery_ready.server.model.excel_translator_header.repository.ExcelTranslatorHeaderRepository;
+import com.customized_delivery_ready.server.model.upload_excel_data.dto.UploadExcelDataDetailDto;
+import com.customized_delivery_ready.server.model.upload_excel_data.dto.UploadExcelDataGetDto;
+import com.customized_delivery_ready.server.model.upload_excel_data.dto.UploadedDetailDto;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -147,5 +145,55 @@ public class ExcelTranslatorHeaderService {
             dataGetDtos.add(dataGetDto);
         }
         return dataGetDtos;
+    }
+
+    // test
+    public List<UploadExcelDataGetDto> uploadExcelFileTest(MultipartFile file) {
+        Workbook workbook = null;
+        try{
+            workbook = WorkbookFactory.create(file.getInputStream());
+        } catch (IOException e) {
+            throw new IllegalArgumentException();
+        }
+
+        Sheet sheet = workbook.getSheetAt(0);
+        List<UploadExcelDataGetDto> excelDto = this.getUploadedExcelForm(sheet);
+        return excelDto;
+    }
+
+    private List<UploadExcelDataGetDto> getUploadedExcelForm(Sheet worksheet) {
+        List<UploadExcelDataGetDto> dtos = new ArrayList<>();
+
+        for(int i = 1; i < worksheet.getPhysicalNumberOfRows(); i++) {
+            Row row = worksheet.getRow(i);
+            List<UploadedDetailDto> uploadedDetailDtos = new ArrayList<>();
+
+            for(int j = 0; j < row.getLastCellNum(); j++) {
+                Cell cell = row.getCell(j);
+
+                Object cellObj = new Object();
+                
+                if(cell == null || cell.getCellType().equals(CellType.BLANK)) {
+                    cellObj = "";
+                } else if (cell.getCellType() == CellType.STRING) {
+                    cellObj = cell.getStringCellValue();
+                } else if (cell.getCellType() == CellType.NUMERIC) {
+                    if (DateUtil.isCellDateFormatted(cell)) {
+                        cellObj = cell.getDateCellValue();
+                    } else {
+                        cellObj = cell.getNumericCellValue();
+                    }
+                }
+                UploadedDetailDto dto = UploadedDetailDto.builder().colData(cellObj).cellType(cellObj.getClass().getSimpleName()).build();  
+
+                uploadedDetailDtos.add(dto);
+            }
+            
+            UploadExcelDataDetailDto detailDto = UploadExcelDataDetailDto.builder().details(uploadedDetailDtos).build();
+            UploadExcelDataGetDto dataDto = UploadExcelDataGetDto.builder().uploadedData(detailDto).build();
+            dtos.add(dataDto);
+        }
+
+        return dtos;
     }
 }
