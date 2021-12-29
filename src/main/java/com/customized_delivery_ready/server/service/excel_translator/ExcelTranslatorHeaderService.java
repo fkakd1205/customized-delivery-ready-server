@@ -84,47 +84,60 @@ public class ExcelTranslatorHeaderService {
 
     private List<ExcelTranslatorDataGetDto> getTranslatedExcelForm(Sheet worksheet, ExcelTranslatorHeaderGetDto headerDto) {
         List<DownloadDetailDto> detailDto = headerDto.getDownloadHeaderDetail().getDetails();
-        List<TranslatedDetailDto> detailDtos = new ArrayList<>();
         List<ExcelTranslatorDataGetDto> dataGetDtos = new ArrayList<>();
 
         // 데이터 시작 위치
         Row row = worksheet.getRow(headerDto.getRowStartNumber());
 
         for(int i = 0; i < detailDto.size(); i++) {
+            List<TranslatedDetailDto> detailDtos = new ArrayList<>();
             DownloadDetailDto dto = detailDto.get(i);
             int targetCellNum = dto.getTargetCellNumber();
 
-            Cell cell = row.getCell(targetCellNum);
-            detailDtos = new ArrayList<>();
+            if (targetCellNum == -1) {
+                for (int rowNum = headerDto.getRowStartNumber(); rowNum < worksheet.getPhysicalNumberOfRows(); rowNum++) {
+                    TranslatedDetailDto translatedDto = TranslatedDetailDto.builder()
+                            .id(UUID.randomUUID())
+                            .headerName(dto.getHeaderName())
+                            .originColData(dto.getFixedValue())
+                            .targetCellNumber(dto.getTargetCellNumber())
+                            .build();
 
-            for(int rowNum = headerDto.getRowStartNumber(); rowNum < worksheet.getPhysicalNumberOfRows(); rowNum++) {
-                row = worksheet.getRow(rowNum);
-                cell = row.getCell(targetCellNum);
-
-                String cellString = "";
-                
-                if (cell.getCellType() == CellType.STRING) {
-                    cellString = cell.getStringCellValue();
-                } else if (cell.getCellType() == CellType.NUMERIC) {
-                    if (DateUtil.isCellDateFormatted(cell)) {
-                        Date date = cell.getDateCellValue();
-                        cellString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(date);
-                    } else {
-                        cellString = String.valueOf((int)cell.getNumericCellValue());
-                    }
+                    detailDtos.add(translatedDto);
                 }
-                
-                TranslatedDetailDto translatedDto = TranslatedDetailDto.builder()
-                    .id(UUID.randomUUID())
-                    .headerName(dto.getHeaderName())
-                    .originColData(cellString)
-                    .targetCellNumber(dto.getTargetCellNumber())
-                    .build();
+            } else {
+                Cell cell = row.getCell(targetCellNum);
 
-                detailDtos.add(translatedDto);
+                for (int rowNum = headerDto.getRowStartNumber(); rowNum < worksheet.getPhysicalNumberOfRows(); rowNum++) {
+                    row = worksheet.getRow(rowNum);
+                    cell = row.getCell(targetCellNum);
+
+                    String cellString = "";
+
+                    if (cell.getCellType() == CellType.STRING) {
+                        cellString = cell.getStringCellValue();
+                    } else if (cell.getCellType() == CellType.NUMERIC) {
+                        if (DateUtil.isCellDateFormatted(cell)) {
+                            Date date = cell.getDateCellValue();
+                            cellString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(date);
+                        } else {
+                            cellString = String.valueOf((int) cell.getNumericCellValue());
+                        }
+                    }
+
+                    TranslatedDetailDto translatedDto = TranslatedDetailDto.builder()
+                            .id(UUID.randomUUID())
+                            .headerName(dto.getHeaderName())
+                            .originColData(cellString)
+                            .targetCellNumber(dto.getTargetCellNumber())
+                            .build();
+
+                    detailDtos.add(translatedDto);
+                }
             }
 
-            ExcelTranslatorDataDetailDto dataDetailDto = ExcelTranslatorDataDetailDto.builder().details(detailDtos).build();
+            ExcelTranslatorDataDetailDto dataDetailDto = ExcelTranslatorDataDetailDto.builder().details(detailDtos)
+                    .build();
             
             ExcelTranslatorDataGetDto dataGetDto = ExcelTranslatorDataGetDto.builder()
                 .id(UUID.randomUUID())
