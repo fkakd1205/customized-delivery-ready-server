@@ -1,9 +1,20 @@
 package com.customized_delivery_ready.server.controller;
 
+import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
+
+import com.customized_delivery_ready.server.model.excel_translator_data.dto.ExcelTranslatorDataGetDto;
 import com.customized_delivery_ready.server.model.excel_translator_header.dto.ExcelTranslatorHeaderGetDto;
 import com.customized_delivery_ready.server.model.message.Message;
 import com.customized_delivery_ready.server.service.excel_translator.ExcelTranslatorHeaderService;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,5 +77,51 @@ public class ExcelTranslatorHeaderApiController {
         message.setMessage("success");
 
         return new ResponseEntity<>(message, message.getStatus());
+    }
+
+    @PostMapping("/download")
+    public void downloadExcelFile(HttpServletResponse response, @RequestBody List<ExcelTranslatorDataGetDto> dtos) {
+
+        // 엑셀 생성
+        Workbook workbook = new XSSFWorkbook();     // .xlsx
+        Sheet sheet = workbook.createSheet("Sheet1");
+        Row row = null;
+        Cell cell = null;
+        int rowNum = 0;
+
+        row = sheet.createRow(rowNum++);
+
+        // headerName 설정
+        for(int i = 0; i < dtos.size(); i++) {
+            // header는 첫번째 row에 기입
+            row = sheet.getRow(0);
+            cell = row.createCell(i);
+            cell.setCellValue(dtos.get(i).getCustomizedData().getDetails().get(0).getHeaderName());
+
+            // 엑셀 데이터 설정
+            for(int j = 0; j < dtos.get(i).getCustomizedData().getDetails().size(); j++) {
+                // 엑셀 데이터는 header의 다음 row부터 기입
+                row = sheet.getRow(j+1);
+                if(row == null) {
+                    row = sheet.createRow(j+1);
+                }
+                cell = row.createCell(i);
+                cell.setCellValue(dtos.get(i).getCustomizedData().getDetails().get(j).getOriginColData());
+            }
+        }
+
+        for(int i = 0; i < dtos.size(); i++){
+            sheet.autoSizeColumn(i);
+        }
+
+        response.setContentType("ms-vnd/excel");
+        response.setHeader("Content-Disposition", "attachment;filename=example.xlsx");
+
+        try{
+            workbook.write(response.getOutputStream());
+            workbook.close();
+        } catch (IOException e) {
+            throw new IllegalArgumentException();
+        }
     }
 }
