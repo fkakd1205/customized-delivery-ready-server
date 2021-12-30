@@ -17,4 +17,5 @@ public class UploadDetailDto {
     private UUID id;
     private String headerName;
     private Integer cellNumber;
+    private String cellType;
 }

@@ -1,5 +1,7 @@
 package com.customized_delivery_ready.server.model.upload_excel_data.dto;
 
+import java.util.UUID;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,5 +14,6 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @Accessors(chain = true)
 public class UploadExcelDataGetDto {
+    private UUID id;
     private UploadExcelDataDetailDto uploadedData = new UploadExcelDataDetailDto();
 }
