@@ -3,10 +3,13 @@ package com.customized_delivery_ready.server.service.excel_translator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.customized_delivery_ready.server.model.excel_translator_header.dto.ExcelTranslatorHeaderGetDto;
+import com.customized_delivery_ready.server.model.excel_translator_header.dto.ExcelTranslatorUploadHeaderDetailDto;
+import com.customized_delivery_ready.server.model.excel_translator_header.dto.UploadDetailDto;
 import com.customized_delivery_ready.server.model.excel_translator_header.entity.ExcelTranslatorHeaderEntity;
 import com.customized_delivery_ready.server.model.excel_translator_header.repository.ExcelTranslatorHeaderRepository;
 import com.customized_delivery_ready.server.model.upload_excel_data.dto.UploadExcelDataDetailDto;
@@ -42,7 +45,7 @@ public class ExcelTranslatorHeaderService {
         return dtos;
     }
 
-    public List<UploadExcelDataGetDto> uploadExcelFile(MultipartFile file) {
+    public List<UploadExcelDataGetDto> uploadExcelFile(MultipartFile file, ExcelTranslatorHeaderGetDto dto) {
         Workbook workbook = null;
         try{
             workbook = WorkbookFactory.create(file.getInputStream());
@@ -51,15 +54,19 @@ public class ExcelTranslatorHeaderService {
         }
 
         Sheet sheet = workbook.getSheetAt(0);
-        List<UploadExcelDataGetDto> excelDto = this.getUploadedExcelForm(sheet);
+        List<UploadExcelDataGetDto> excelDto = this.getUploadedExcelForm(sheet, dto);
         return excelDto;
     }
 
-    private List<UploadExcelDataGetDto> getUploadedExcelForm(Sheet worksheet) {
+    private List<UploadExcelDataGetDto> getUploadedExcelForm(Sheet worksheet, ExcelTranslatorHeaderGetDto dto) {
         List<UploadExcelDataGetDto> dtos = new ArrayList<>();
+        List<UploadDetailDto> uploadDetailDtos = dto.getUploadHeaderDetail().getDetails();
 
-        // TODO :: 시작 위치 Map으로 가져와야함. , 시작위치(헤더위치)에서 타입 다 String으로 가져오기 때문에 변경해야 함.
-        for(int i = 1; i < worksheet.getPhysicalNumberOfRows(); i++) {
+        if(uploadDetailDtos.size() != dto.getUploadHeaderDetail().getDetails().size()) {
+            throw new IllegalArgumentException();
+        }
+
+        for(int i = dto.getRowStartNumber()-1; i < worksheet.getPhysicalNumberOfRows(); i++) {
             Row row = worksheet.getRow(i);
             List<UploadedDetailDto> uploadedDetailDtos = new ArrayList<>();
 
@@ -78,8 +85,15 @@ public class ExcelTranslatorHeaderService {
                         cellObj = cell.getNumericCellValue();
                     }
                 }
-                UploadedDetailDto dto = UploadedDetailDto.builder().colData(cellObj).cellType(cellObj.getClass().getSimpleName()).build();  
-                uploadedDetailDtos.add(dto);
+
+                if(uploadDetailDtos.size() > 0 && i == dto.getRowStartNumber()-1) {
+                    if(!uploadDetailDtos.get(j).getHeaderName().equals(cellObj.toString())){
+                        throw new IllegalArgumentException();
+                    }
+                }
+
+                UploadedDetailDto uploadedDto = UploadedDetailDto.builder().colData(cellObj).cellType(cellObj.getClass().getSimpleName()).build();  
+                uploadedDetailDtos.add(uploadedDto);
             }
             
             UploadExcelDataDetailDto detailDto = UploadExcelDataDetailDto.builder().details(uploadedDetailDtos).build();
@@ -88,5 +102,17 @@ public class ExcelTranslatorHeaderService {
         }
 
         return dtos;
+    }
+
+    public void updateUploadHeaderDetailOfExcelTranslator(ExcelTranslatorHeaderGetDto dto) {
+        Optional<ExcelTranslatorHeaderEntity> entityOpt = excelTranslatorHeaderRepository.findById(dto.getId());
+
+        if (entityOpt.isPresent()) {
+            ExcelTranslatorHeaderEntity entity = entityOpt.get();
+            entity.setUploadHeaderDetail(dto.getUploadHeaderDetail());
+            excelTranslatorHeaderRepository.save(entity);
+        } else {
+            throw new NullPointerException();
+        }
     }
 }
