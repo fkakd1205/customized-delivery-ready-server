@@ -92,12 +92,12 @@ public class ExcelTranslatorHeaderService {
                     }
                 }
 
-                UploadedDetailDto uploadedDto = UploadedDetailDto.builder().colData(cellObj).cellType(cellObj.getClass().getSimpleName()).build();  
-                uploadedDetailDtos.add(uploadedDto);
+                UploadedDetailDto detailDto = UploadedDetailDto.builder().colData(cellObj).cellType(cellObj.getClass().getSimpleName()).build();  
+                uploadedDetailDtos.add(detailDto);
             }
             
-            UploadExcelDataDetailDto detailDto = UploadExcelDataDetailDto.builder().details(uploadedDetailDtos).build();
-            UploadExcelDataGetDto dataDto = UploadExcelDataGetDto.builder().id(UUID.randomUUID()).uploadedData(detailDto).build();
+            UploadExcelDataDetailDto uploadedData = UploadExcelDataDetailDto.builder().details(uploadedDetailDtos).build();
+            UploadExcelDataGetDto dataDto = UploadExcelDataGetDto.builder().id(UUID.randomUUID()).uploadedData(uploadedData).build();
             dtos.add(dataDto);
         }
 
@@ -110,6 +110,18 @@ public class ExcelTranslatorHeaderService {
         if (entityOpt.isPresent()) {
             ExcelTranslatorHeaderEntity entity = entityOpt.get();
             entity.setUploadHeaderDetail(dto.getUploadHeaderDetail());
+            excelTranslatorHeaderRepository.save(entity);
+        } else {
+            throw new NullPointerException();
+        }
+    }
+
+    public void updateDownloadHeaderDetailOfExcelTranslator(ExcelTranslatorHeaderGetDto dto) {
+        Optional<ExcelTranslatorHeaderEntity> entityOpt = excelTranslatorHeaderRepository.findById(dto.getId());
+
+        if (entityOpt.isPresent()) {
+            ExcelTranslatorHeaderEntity entity = entityOpt.get();
+            entity.setDownloadHeaderDetail(dto.getDownloadHeaderDetail());
             excelTranslatorHeaderRepository.save(entity);
         } else {
             throw new NullPointerException();

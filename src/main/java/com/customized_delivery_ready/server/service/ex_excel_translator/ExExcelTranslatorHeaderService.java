@@ -95,7 +95,7 @@ public class ExExcelTranslatorHeaderService {
             if (targetCellNum == -1) {
                 for (int rowNum = headerDto.getRowStartNumber(); rowNum < worksheet.getPhysicalNumberOfRows(); rowNum++) {
                     TranslatedDetailDto translatedDto = TranslatedDetailDto.builder()
-                            .id(UUID.randomUUID())
+                            // .id(UUID.randomUUID())
                             .headerName(dto.getHeaderName())
                             .originColData(dto.getFixedValue())
                             .targetCellNumber(dto.getTargetCellNumber())
@@ -124,7 +124,7 @@ public class ExExcelTranslatorHeaderService {
                     }
 
                     TranslatedDetailDto translatedDto = TranslatedDetailDto.builder()
-                            .id(UUID.randomUUID())
+                            // .id(UUID.randomUUID())
                             .headerName(dto.getHeaderName())
                             .originColData(cellString)
                             .targetCellNumber(dto.getTargetCellNumber())

@@ -1,4 +1,4 @@
-package com.customized_delivery_ready.server.model.excel_translator_data.dto;
+package com.customized_delivery_ready.server.model.upload_excel_data.dto;
 
 import java.util.UUID;
 
@@ -13,8 +13,7 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @NoArgsConstructor
 @Accessors(chain = true)
-public class TranslatedDetailDto {
-    private String headerName;
-    private String originColData;
-    private Integer targetCellNumber;
+public class DownloadExcelDataGetDto {
+    private UUID id;
+    private UploadExcelDataDetailDto translatedData = new UploadExcelDataDetailDto();
 }
